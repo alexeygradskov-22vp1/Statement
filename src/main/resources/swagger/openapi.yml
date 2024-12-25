@@ -24,6 +24,12 @@ paths:
               $ref: '#/components/schemas/LoanStatementRequest'
       responses:
         '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanOffer'
           description: Заявка успешно отправлена на прескоринг
         '400':
           description: Заявка не прошла прескоринг
@@ -125,7 +131,6 @@ components:
         statementId:
           type: string
           format: uuid
-          nullable: false
         requestedAmount:
           type: number
           nullable: false

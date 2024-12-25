@@ -1,0 +1,10 @@
+{
+  "statementId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "requestedAmount": 20000,
+  "totalAmount": 20000,
+  "term": 6,
+  "monthlyPayment": 10000,
+  "rate": 10000,
+  "isInsuranceEnabled": true,
+  "isSalaryClient": true
+}
