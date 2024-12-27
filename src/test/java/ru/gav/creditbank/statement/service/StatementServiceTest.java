@@ -3,12 +3,10 @@ package ru.gav.creditbank.statement.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.BodyInserter;
@@ -31,24 +29,19 @@ import static org.mockito.Mockito.doReturn;
 @Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class StatementServiceTest {
     @Mock
     private WebClient dealWebClientMock;
-    @Mock
+
     private WebClient.RequestBodyUriSpec requestBodyUriSpec;
-    @Mock
     private WebClient.RequestBodySpec requestBodySpec;
-    @Mock
     private WebClient.RequestHeadersSpec requestHeadersSpec;
-    @Mock
     private WebClient.ResponseSpec responseSpec;
-    @Mock
     private Flux<LoanOfferDto> loanOfferDtoFlux;
-    @Mock
     private Stream<LoanOfferDto> loanOfferDtoStream;
-    @Mock
     private List<LoanOfferDto> list;
-    Mono<ResponseEntity<Void>> mono = Mono.just(ResponseEntity.ok().build());
+
 
     @InjectMocks
     private StatementServiceImpl statementService;
@@ -57,7 +50,7 @@ public class StatementServiceTest {
     private LoanStatementRequestDto loanStatementRequestDto;
 
     @BeforeAll
-    public void init(){
+    public void init() {
         try (InputStream loanStatementRequestDtoStream = LoanStatementRequestDto.class.getResourceAsStream("/data/loan-statement-request-dto.json");
              InputStream loanOfferDtoStream = LoanOfferDto.class.getResourceAsStream("/data/loan-offer-dto.json")) {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -65,21 +58,42 @@ public class StatementServiceTest {
             loanOfferDto = objectMapper.readValue(loanOfferDtoStream, LoanOfferDto.class);
             loanStatementRequestDto = objectMapper.readValue(loanStatementRequestDtoStream, LoanStatementRequestDto.class);
             list = List.of(loanOfferDto, loanOfferDto, loanOfferDto, loanOfferDto);
-        }catch (IOException ioException){
+        } catch (IOException ioException) {
             log.error("e: ", ioException);
         }
     }
 
     @Test
-    public void scoreTest(){
+    @Order(1)
+    public void scoreTest() {
+        mockWebClient();
         doReturn(requestBodyUriSpec).when(dealWebClientMock).post();
         doReturn(requestBodySpec).when(requestBodyUriSpec).uri(any(Function.class));
         doReturn(requestHeadersSpec).when(requestBodySpec).body(any(BodyInserter.class));
         doReturn(responseSpec).when(requestHeadersSpec).retrieve();
-        doReturn(loanOfferDtoFlux).when(responseSpec).bodyToFlux(LoanOfferDto.class);
-        doReturn(loanOfferDtoStream).when(loanOfferDtoFlux).toStream();
-        doReturn(list).when(loanOfferDtoStream).toList();
+        doReturn(Flux.fromIterable(list)).when(responseSpec).bodyToFlux(LoanOfferDto.class);
         Assertions.assertEquals(list, statementService.score(loanStatementRequestDto));
+    }
+
+    private void mockWebClient() {
+        requestBodyUriSpec = Mockito.mock(WebClient.RequestBodyUriSpec.class);
+        requestBodySpec = Mockito.mock(WebClient.RequestBodySpec.class);
+        requestHeadersSpec = Mockito.mock(WebClient.RequestHeadersSpec.class);
+        responseSpec = Mockito.mock(WebClient.ResponseSpec.class);
+        loanOfferDtoFlux = Mockito.mock(Flux.class);
+        loanOfferDtoStream = Mockito.mock(Stream.class);
+    }
+
+    @Test
+    @Order(2)
+    public void selectOfferTest() {
+        Mono<ResponseEntity<Void>> mono = Mono.just(ResponseEntity.ok().build());
+        mockWebClient();
+        doReturn(requestBodyUriSpec).when(dealWebClientMock).post();
+        doReturn(requestBodySpec).when(requestBodyUriSpec).uri(any(Function.class));
+        doReturn(requestHeadersSpec).when(requestBodySpec).body(any(BodyInserter.class));
+        doReturn(responseSpec).when(requestHeadersSpec).retrieve();
+        doReturn(mono).when(responseSpec).toBodilessEntity();
     }
 
 
