@@ -1,5 +1,5 @@
 spring:
   application:
     name: Statement
-
-
+base-urls:
+  deal: http://${DEAL_HOST:localhost}:${DEAL_PORT:8080}
