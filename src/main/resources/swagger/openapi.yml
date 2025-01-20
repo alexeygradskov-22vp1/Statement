@@ -1,0 +1,154 @@
+openapi: 3.0.3
+
+info:
+  version: 0.0.1-SNAPSHOT
+  title: Statement Service OpenApi
+  description: Микросервис прескоринга заявки на кредит
+  contact:
+    email: gradskovaleksej@gmail.com
+
+tags:
+  - "statements"
+paths:
+  /statement:
+    description: первичная валидация заявки, создание заявки
+    post:
+      tags:
+        - statements
+      operationId: firstValidationApplication
+      requestBody:
+        description: Заявка на кредит
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanStatementRequest'
+      responses:
+        '200':
+          description: Заявка успешно отправлена на прескоринг
+        '400':
+          description: Заявка не прошла прескоринг
+  /statements/offer:
+    description: выбор одного из предложений
+    post:
+      tags:
+        - statements
+      operationId: choosingOffer
+      requestBody:
+        description: "выбранное предложение на кредит"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanOffer'
+      responses:
+        '200':
+          description: Предложение на кредит успешно отправлено
+        '400':
+          description: Неудачная отправка предложения
+components:
+  schemas:
+    LoanStatementRequest:
+      required:
+        - amount
+        - term
+        - firstName
+        - lastName
+        - email
+        - birthdate
+        - passportSeries
+        - passportNumber
+      type: object
+      properties:
+        amount:
+          type: number
+          nullable: false
+          example: 100000
+          minimum: 20000
+        term:
+          type: integer
+          nullable: false
+          minimum: 6
+          example: 6
+        firstName:
+          type: string
+          nullable: false
+          example: "Ivanov"
+          minLength: 2
+          maxLength: 30
+        lastName:
+          type: string
+          nullable: false
+          example: "Ivan"
+          minLength: 2
+          maxLength: 30
+        middleName:
+          type: string
+          example: "Ivanovich"
+          minLength: 2
+          maxLength: 30
+        email:
+          type: string
+          nullable: false
+          example: "IvanovII@gmail.com"
+          pattern: "^[a-z0-9A-Z_!#$%&'*+/=?`{|}~^.-]+@[a-z0-9A-Z.-]+$"
+        birthdate:
+          type: string
+          format: date
+          nullable: false
+          example: "1999-01-01"
+          x-field-extra-annotation: "@ru.gav.creditbank.statement.validation.CheckAgeAnnotation"
+        passportSeries:
+          nullable: false
+          type: string
+          maxLength: 4
+          minLength: 4
+          example: "1111"
+        passportNumber:
+          type: string
+          nullable: false
+          minLength: 6
+          maxLength: 6
+          example: "111111"
+
+    LoanOffer:
+      required:
+        - statementId
+        - requestedAmount
+        - totalAmount
+        - term
+        - monthlyPayment
+        - rate
+        - isInsuranceEnabled
+        - isSalaryClient
+      type: object
+      description: "Предложение по кредиту"
+      properties:
+        statementId:
+          type: string
+          format: uuid
+          nullable: false
+        requestedAmount:
+          type: number
+          nullable: false
+          example: 20000
+        totalAmount:
+          type: number
+          nullable: false
+          example: 20000
+        term:
+          type: integer
+          nullable: false
+          example: 6
+        monthlyPayment:
+          type: number
+          nullable: false
+          example: 10000
+        rate:
+          type: number
+          nullable: false
+          example: 10000
+        isInsuranceEnabled:
+          type: boolean
+          nullable: false
+        isSalaryClient:
+          type: boolean
+          nullable: false
