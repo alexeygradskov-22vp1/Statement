@@ -22,6 +22,7 @@ public class StatementController implements StatementsApi {
 
     @Override
     public ResponseEntity<List<LoanOfferDto>> firstValidationApplication(LoanStatementRequestDto loanStatementRequestDto) {
-        return ResponseEntity.ok(statementService.score(loanStatementRequestDto));
+        List<LoanOfferDto> result = statementService.score(loanStatementRequestDto);
+        return ResponseEntity.ok(result);
     }
 }
